@@ -53,6 +53,19 @@ HTTP fixtures use Node.js built-in HTTP/HTTPS servers on loopback interfaces,
 without Nock. A test-only agent routes example hosts locally while preserving
 request headers, and trusts the fixture certificate only for these hosts.
 
+The plan is to migrate these HTTP response fixtures back to Nock once a stable
+release supports clients that wait for TCP/TLS connection events before sending
+requests, and compatibility has been verified in this repository. During testing
+on September 17–18, 2026, Nock 14.0.17 and MSW 2.15.0 timed out with httpxy;
+this is a limitation of the tested mocking implementations, not evidence of a
+failure when connecting to real upstream servers.
+[Nock 15.0.0-beta.13](https://github.com/nock/nock/releases/tag/v15.0.0-beta.13)
+already incorporates TCP/TLS wrap-based interception, but has not been tested
+in this repository. Before migrating, run the full suite on supported Node.js
+versions, including HTTP/HTTPS forwarding, request bodies, redirects, connection
+errors and TLS certificate validation. Keep real-server integration tests for
+transport behavior and certificate validation even after adopting Nock.
+
 Commit `package-lock.json` when updating dependencies, and rerun the checks
 above. A clean dependency audit means no known advisories were reported for
 that dependency tree at that time; it is not a guarantee that the application

@@ -1,6 +1,6 @@
 var assert = require('assert');
 var http = require('http');
-var httpProxy = require('http-proxy');
+var httpProxy = require('httpxy');
 var createServer = require('../').createServer;
 
 describe('Proxy dependency security regressions', function() {

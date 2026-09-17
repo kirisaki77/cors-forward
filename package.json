@@ -28,7 +28,7 @@
     "server.js"
   ],
   "dependencies": {
-    "http-proxy": "1.18.1",
+    "httpxy": "0.5.5",
     "proxy-from-env": "2.1.0"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "mocha ./test/test*.js --reporter spec",
-    "test-coverage": "c8 --reporter=text --reporter=lcov mocha test/test.js test/test-ratelimit.js test/test-security.js --reporter spec"
+    "test-coverage": "c8 --reporter=text --reporter=lcov mocha test/test.js test/test-ratelimit.js test/test-security.js test/test-httpxy.js --reporter spec"
   },
   "engines": {
     "node": "^22.13.0 || >=24.0.0"

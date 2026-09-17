@@ -1,5 +1,5 @@
 var nock = require('nock');
-nock.enableNetConnect('127.0.0.1');
+nock.enableNetConnect(/^(127\.0\.0\.1|\[?::1\]?)(:\d+)?$/);
 
 function echoheaders(origin) {
   nock(origin)

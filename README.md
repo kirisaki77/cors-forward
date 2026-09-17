@@ -31,10 +31,18 @@ npm run test-coverage
 npm audit
 ```
 
-The proxy dependency is pinned to `http-proxy` 1.18.1, which fixes
-[GHSA-6x33-pw7p-hmpq](https://github.com/advisories/GHSA-6x33-pw7p-hmpq).
-The existing CORS Anywhere API and proxy options are retained. With the default
-`xfwd: true`, this version also forwards `X-Forwarded-Host`.
+The proxy dependency is pinned to [`httpxy` 0.5.5](https://github.com/unjs/httpxy).
+The CommonJS `require('cors-anywhere').createServer(options)` API is retained;
+the supported Node.js versions can load httpxy's ES module synchronously.
+The existing `httpProxyOptions` option now configures httpxy. With the default
+`xfwd: true`, it also forwards `X-Forwarded-Host`. Connections are not pooled by
+default; a custom `httpProxyOptions.agent` can opt into connection reuse.
+
+CORS Anywhere controls destination selection and redirect following: 301/302/303
+become GET requests up to `maxRedirects`, while 307/308 are returned with rewritten
+locations. Intermediate responses are drained before following the next hop.
+`Expect: 100-continue` is answered by the local HTTP server and is not forwarded
+upstream. Environment-selected forward proxies still receive absolute-form URLs.
 Development tooling uses ESLint flat configuration and c8 coverage; the old
 Istanbul and Coveralls CLI dependencies have been removed. Coverage reports
 remain available in `coverage/lcov.info`.
@@ -156,9 +164,11 @@ proxy requests. The following options are supported:
 
 For advanced users, the following options are also provided.
 
-* `httpProxyOptions` - Under the hood, [http-proxy](https://github.com/nodejitsu/node-http-proxy)
+* `httpProxyOptions` - Under the hood, [httpxy](https://github.com/unjs/httpxy)
   is used to proxy requests. Use this option if you really need to pass options
-  to http-proxy. The documentation for these options can be found [here](https://github.com/nodejitsu/node-http-proxy#options).
+  to httpxy. See its [options](https://github.com/unjs/httpxy#options).
+  CORS Anywhere manages `target`, `changeOrigin`, `prependPath`, `headers` and
+  `followRedirects` itself; use `maxRedirects` to control redirect following.
 * `httpsOptions` - If set, a `https.Server` will be created. The given options are passed to the
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) method.
 

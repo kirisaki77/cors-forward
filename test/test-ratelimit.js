@@ -1,8 +1,7 @@
-/* eslint-env mocha */
 
 var createRateLimitChecker = require('../lib/rate-limit');
 
-var lolex = require('lolex');
+var fakeTimers = require('@sinonjs/fake-timers');
 var assert = require('assert');
 
 function assertNotLimited(rateLimitReturnValue) {
@@ -26,7 +25,7 @@ function assertLimited(rateLimitReturnValue, limit, period) {
 describe('Rate limit', function() {
   var clock;
   beforeEach(function() {
-    clock = lolex.install();
+    clock = fakeTimers.install({toFake: ['Date', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval']});
   });
   afterEach(function() {
     clock.uninstall();

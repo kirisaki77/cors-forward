@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 require('./setup');
 
 var createServer = require('../').createServer;
@@ -175,7 +174,7 @@ describe('Basic functionality', function() {
       .post('/example.com/echopost')
       .attach('file', path.join(__dirname, 'dummy.txt'))
       .expect('Access-Control-Allow-Origin', '*')
-      .expect(/\r\nContent-Disposition: form-data; name="file"; filename="dummy.txt"\r\nContent-Type: text\/plain\r\n\r\ndummy content\n\r\n/, done); // eslint-disable-line max-len
+      .expect(/\r\nContent-Disposition: form-data; name="file"; filename="dummy.txt"\r\nContent-Type: text\/plain\r\n\r\ndummy content\r?\n\r\n/, done); // eslint-disable-line max-len
   });
 
   it('HEAD with redirect should be followed', function(done) {
@@ -190,7 +189,7 @@ describe('Basic functionality', function() {
       .expect('x-cors-redirect-1', '302 http://example.com/redirecttarget')
       .expect('x-final-url', 'http://example.com/redirecttarget')
       .expect('access-control-expose-headers', /some-header,x-final-url/)
-      .expectNoHeader('header at redirect')
+      .expectNoHeader('header-at-redirect')
       .expect(200, undefined, done);
   });
 
@@ -204,7 +203,7 @@ describe('Basic functionality', function() {
       .expect('x-cors-redirect-1', '302 http://example.com/redirecttarget')
       .expect('x-final-url', 'http://example.com/redirecttarget')
       .expect('access-control-expose-headers', /some-header,x-final-url/)
-      .expectNoHeader('header at redirect')
+      .expectNoHeader('header-at-redirect')
       .expect(200, 'redirect target', done);
   });
 
@@ -308,6 +307,7 @@ describe('Basic functionality', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'http',
       }, done);
@@ -320,6 +320,7 @@ describe('Basic functionality', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com:1337',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'http',
       }, done);
@@ -332,6 +333,7 @@ describe('Basic functionality', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'http',
       }, done);
@@ -403,8 +405,11 @@ describe('Proxy errors', function() {
           // Assume end of headers.
           socket.write('HTTP/1.1 418 OK\r\n');
           socket.write('Transfer-Encoding: chunked\r\n');
-          socket.write('\r\n');
-          socket.end('JK I lied, this is NOT a chunked response!');
+          socket.write('\r\n1\r\nx\r\n');
+          // Flush the response first to exercise errors after headers are sent.
+          setTimeout(function() {
+            socket.end('JK I lied, this is NOT a chunked response!');
+          }, 20);
         }
       });
     });
@@ -439,20 +444,7 @@ describe('Proxy errors', function() {
   });
 
   it('Invalid HTTP status code', function(done) {
-    // Strict HTTP status validation was introduced in Node 4.5.5+, 5.11.0+.
-    // https://github.com/nodejs/node/pull/6291
-    var nodev = process.versions.node.split('.').map(function(v) { return parseInt(v); });
-    if (nodev[0] < 4 ||
-        nodev[0] === 4 && nodev[1] < 5 ||
-        nodev[0] === 4 && nodev[1] === 5 && nodev[2] < 5 ||
-        nodev[0] === 5 && nodev[1] < 11) {
-      this.skip();
-    }
-
-    var errorMessage = 'RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: 0';
-    if (parseInt(process.versions.node, 10) < 9) {
-      errorMessage = 'RangeError: Invalid status code: 0';
-    }
+    var errorMessage = 'Error: Parse Error: Invalid status code';
     request(cors_anywhere)
       .get('/' + bad_status_http_server_url)
       .expect('Access-Control-Allow-Origin', '*')
@@ -465,7 +457,7 @@ describe('Proxy errors', function() {
     request(cors_anywhere)
       .get('/' + bad_tcp_server_url)
       .expect('Access-Control-Allow-Origin', '*')
-      .expect(418, '', done);
+      .expect(418, 'x', done);
   });
 
   it('Invalid header values', function(done) {
@@ -525,6 +517,7 @@ describe('server on https', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'https',
       }, done);
@@ -537,6 +530,7 @@ describe('server on https', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'https',
       }, done);
@@ -549,6 +543,7 @@ describe('server on https', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com:1337',
+        'x-forwarded-host': '127.0.0.1:' + cors_anywhere_port,
         'x-forwarded-port': String(cors_anywhere_port),
         'x-forwarded-proto': 'https',
       }, done);
@@ -560,11 +555,7 @@ describe('NODE_TLS_REJECT_UNAUTHORIZED', function() {
   var bad_https_server;
   var bad_https_server_port;
 
-  var certErrorMessage = 'Error: certificate has expired';
-  // <0.11.11: https://github.com/nodejs/node/commit/262a752c2943842df7babdf55a034beca68794cd
-  if (/^0\.(?!11\.1[1-4]|12\.)/.test(process.versions.node)) {
-    certErrorMessage = 'Error: CERT_HAS_EXPIRED';
-  }
+  var certErrorPattern = /^Not found because of proxy error: Error: self-signed certificate(?:;.*)?$/;
 
   before(function() {
     cors_anywhere = createServer({});
@@ -580,7 +571,7 @@ describe('NODE_TLS_REJECT_UNAUTHORIZED', function() {
       key: fs.readFileSync(path.join(__dirname, 'key.pem')),
       cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
     }, function(req, res) {
-      res.end('Response from server with expired cert');
+      res.end('Response from server with self-signed cert');
     });
     bad_https_server_port = bad_https_server.listen(0).address().port;
 
@@ -603,7 +594,8 @@ describe('NODE_TLS_REJECT_UNAUTHORIZED', function() {
       .get('/https://127.0.0.1:' + bad_https_server_port)
       .set('test-include-xfwd', '')
       .expect('Access-Control-Allow-Origin', '*')
-      .expect('Not found because of proxy error: ' + certErrorMessage, done);
+      .expect(404)
+      .expect(certErrorPattern, done);
   });
 
   it('ignore certificate errors via NODE_TLS_REJECT_UNAUTHORIZED=0', function(done) {
@@ -615,7 +607,7 @@ describe('NODE_TLS_REJECT_UNAUTHORIZED', function() {
         .get('/https://127.0.0.1:' + bad_https_server_port)
         .set('test-include-xfwd', '')
         .expect('Access-Control-Allow-Origin', '*')
-        .expect('Response from server with expired cert', done);
+        .expect('Response from server with self-signed cert', done);
     });
   });
 
@@ -631,7 +623,8 @@ describe('NODE_TLS_REJECT_UNAUTHORIZED', function() {
         .get('/https://127.0.0.1:' + bad_https_server_port)
         .set('test-include-xfwd', '')
         .expect('Access-Control-Allow-Origin', '*')
-        .expect('Not found because of proxy error: ' + certErrorMessage, done);
+        .expect(404)
+        .expect(certErrorPattern, done);
     });
   });
 });

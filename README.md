@@ -17,6 +17,36 @@ cookies. Requesting [user credentials](http://www.w3.org/TR/cors/#user-credentia
 The app can be configured to require a header for proxying a request, for example to avoid
 a direct visit from the browser.
 
+## Development and dependency security
+
+This fork requires Node.js 22.13+ (22.x) or 24+. Use a supported Node.js LTS
+release and install the locked dependency tree with `npm ci` (or
+`npm ci --omit=dev` for production).
+
+```sh
+npm ci
+npm run lint
+npm test
+npm run test-coverage
+npm audit
+```
+
+The proxy dependency is pinned to `http-proxy` 1.18.1, which fixes
+[GHSA-6x33-pw7p-hmpq](https://github.com/advisories/GHSA-6x33-pw7p-hmpq).
+The existing CORS Anywhere API and proxy options are retained. With the default
+`xfwd: true`, this version also forwards `X-Forwarded-Host`.
+Development tooling uses ESLint flat configuration and c8 coverage; the old
+Istanbul and Coveralls CLI dependencies have been removed. Coverage reports
+remain available in `coverage/lcov.info`.
+
+Commit `package-lock.json` when updating dependencies, and rerun the checks
+above. A clean dependency audit means no known advisories were reported for
+that dependency tree at that time; it is not a guarantee that the application
+or deployment has no vulnerabilities.
+
+The certificate and private key under `test/` are public, self-signed test
+fixtures only. Never use them for a deployed server.
+
 ## Example
 
 ```javascript

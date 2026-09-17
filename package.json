@@ -28,24 +28,24 @@
     "server.js"
   ],
   "dependencies": {
-    "http-proxy": "1.11.1",
-    "proxy-from-env": "0.0.1"
+    "http-proxy": "1.18.1",
+    "proxy-from-env": "2.1.0"
   },
   "devDependencies": {
-    "coveralls": "^2.11.6",
-    "eslint": "^2.2.0",
-    "istanbul": "^0.4.2",
-    "lolex": "^1.5.0",
-    "mocha": "^3.4.2",
-    "nock": "^8.2.1",
-    "supertest": "^2.0.1"
+    "@sinonjs/fake-timers": "^15.4.0",
+    "c8": "^12.0.0",
+    "eslint": "^10.10.0",
+    "globals": "^16.0.0",
+    "mocha": "^12.0.2",
+    "nock": "^13.5.6",
+    "supertest": "^7.2.2"
   },
   "scripts": {
     "lint": "eslint .",
     "test": "mocha ./test/test*.js --reporter spec",
-    "test-coverage": "istanbul cover ./node_modules/.bin/_mocha -- test/test.js test/test-ratelimit.js --reporter spec"
+    "test-coverage": "c8 --reporter=text --reporter=lcov mocha test/test.js test/test-ratelimit.js test/test-security.js --reporter spec"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": "^22.13.0 || >=24.0.0"
   }
 }

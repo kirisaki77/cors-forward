@@ -1,34 +1,11 @@
 var nock = require('nock');
-if (parseInt(process.versions.node, 10) >= 8) {
-  // See DEP0066 at https://nodejs.org/api/deprecations.html.
-  // _headers and _headerNames have been removed from Node v8, which causes
-  // nock <= 9.0.13 to fail. The snippet below monkey-patches the library, see
-  // https://github.com/node-nock/nock/pull/929/commits/f6369d0edd2a172024124f
-  // for the equivalent logic without proxies.
-  Object.defineProperty(require('http').ClientRequest.prototype, '_headers', {
-    get: function() {
-      var request = this;
-      // eslint-disable-next-line no-undef
-      return new Proxy(request.getHeaders(), {
-        set: function(target, property, value) {
-          request.setHeader(property, value);
-          return true;
-        },
-      });
-    },
-    set: function() {
-      // Ignore.
-    },
-  });
-}
-
 nock.enableNetConnect('127.0.0.1');
 
 function echoheaders(origin) {
   nock(origin)
     .persist()
     .get('/echoheaders')
-    .reply(function() {
+    .reply(200, function() {
       var headers = this.req.headers;
       var excluded_headers = [
         'accept-encoding',
@@ -39,6 +16,7 @@ function echoheaders(origin) {
         'test-include-xfwd',
       ];
       if (!('test-include-xfwd' in headers)) {
+        excluded_headers.push('x-forwarded-host');
         excluded_headers.push('x-forwarded-port');
         excluded_headers.push('x-forwarded-proto');
       }
@@ -81,7 +59,7 @@ nock('http://example.com')
 
   .get('/redirect')
   .reply(302, 'redirecting...', {
-    'header at redirect': 'should not be here',
+    'header-at-redirect': 'should not be here',
     Location: '/redirecttarget',
   })
 

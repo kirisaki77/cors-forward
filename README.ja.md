@@ -12,9 +12,47 @@
 プロキシ先 URI のプロトコルは省略可能で、既定値は `http` です。ポートに 443 を指定した場合は、
 プロトコルの既定値が `https` になります。
 
-このパッケージは、Cookie を除き、HTTP メソッドやヘッダーを制限しません。
-[ユーザー認証情報](http://www.w3.org/TR/cors/#user-credentials)を使用するリクエストは許可されません。
+HTTP メソッドは制限しません。Cookie・Authorization などの機密リクエストヘッダーは既定で削除します。
+必要な場合は後述の `allowSensitiveHeaders` で個別に許可できます。
+レスポンスの Cookie は常に削除し、ブラウザーの資格情報付き CORS 応答は有効にしません。
 ブラウザーからの直接アクセスを防ぐなどの目的で、プロキシ処理に特定のヘッダーを必須とする設定も可能です。
+
+## セキュリティ変更と移行方法
+
+**認証情報の転送には明示的な許可が必要になりました。** 更新時は、プロキシ経由で認証ヘッダーや
+Cookie を送信しているクライアントを確認してください。許可しない場合、転送先から 401／403 が返る、
+または未認証のリクエストとして扱われることがあります。
+
+| 対象 | 現在の動作 |
+| --- | --- |
+| 機密リクエストヘッダー | `Authorization`・`Proxy-Authorization`・`Cookie`・`Cookie2`・`X-Api-Key`・`X-Auth-Token` を既定で削除します。 |
+| 自動追従するリダイレクト | 許可した認証情報は、スキーム・ホスト名・実効ポートが同じ間だけ維持します。一度変わると、その後の転送でも復活しません。 |
+| レスポンスの Cookie | リクエストの Cookie を許可しても、`Set-Cookie`・`Set-Cookie2` は引き続き削除します。 |
+| URL 解析エラー | 以前は解析中の例外でプロセスが停止していた不正 URL に対し、HTTP 400 を返します。ヘルプ表示やスラッシュ不足時の既存処理は維持します。 |
+
+転送先が必要とする認証情報だけ、サーバー側で許可してください。
+
+```javascript
+var relay = require('cors-relay');
+relay.createServer({
+  allowSensitiveHeaders: ['authorization', 'cookie'],
+}).listen(8080, '127.0.0.1');
+```
+
+リポジトリの `server.js` を使う場合、PowerShell では次のように設定できます。
+
+```powershell
+$env:CORSANYWHERE_ALLOW_SENSITIVE_HEADERS = 'authorization,cookie'
+node server.js
+```
+
+これは運用者が設定するオプションです。クライアントがリクエストヘッダーで削除を解除することはできません。
+未設定なら6種類すべてを削除します。既存の `removeHeaders` に `cookie` が含まれる場合は、
+Cookie の転送を許可する際に、その指定も外してください。
+`setHeaders`・`httpProxyOptions.auth`・`httpProxyOptions.ssl.auth` から追加する認証情報にも適用します。
+その他の独自認証ヘッダーは、必要に応じて `removeHeaders` に追加してください。
+オプションの詳細は後述の `allowSensitiveHeaders`、アクセス・転送先の制限は
+「公開運用時の設定」を参照してください。
 
 ## 開発環境と依存関係
 
@@ -190,6 +228,22 @@ jQuery.ajaxPrefilter(function(options) {
   例: `['Origin', 'X-Requested-With']`
 * `removeHeaders`（小文字の文字列の配列）- リクエストから指定したヘッダーを除去します。
   例: `["cookie"]`
+* `allowSensitiveHeaders`（文字列の配列）- 既定値は `[]` です。
+  `authorization`・`proxy-authorization`・`cookie`・`cookie2`・`x-api-key`・`x-auth-token` を
+  既定で削除し、この配列に指定したものだけ転送できます（大文字・小文字は区別しません）。
+  `setHeaders` で設定した値や、`httpProxyOptions.auth`・`httpProxyOptions.ssl.auth` による
+  Authorization の生成にも適用します。
+  その他の独自認証ヘッダーは `removeHeaders` に追加してください。
+  同一オリジンへのリダイレクトでは許可したヘッダーを維持しますが、スキーム・ホスト名・実効ポートが
+  変わるリダイレクトでは必ず削除します。HTTPS から HTTP への変更も対象です。
+  同じ IPv6 アドレスの表記違いや、既定ポートの省略・明示は同一オリジンとして扱います。
+  その後、元のオリジンに戻っても復活しません。
+  `removeHeaders` にも指定したリクエストヘッダーは引き続き削除します。
+  レスポンスの `set-cookie`・`set-cookie2` は、この設定にかかわらず常に削除します。
+  設定例: `allowSensitiveHeaders: ['authorization', 'cookie']`。
+  `server.js` では環境変数 `CORSANYWHERE_ALLOW_SENSITIVE_HEADERS=authorization,cookie` でも設定できます。
+  **互換性の変更:** 従来の認証ヘッダー転送に依存する利用者は、必要なヘッダーを明示的に許可してください。
+  許可するのは転送先向けの認証情報に限り、プロキシ自体へのアクセス認証情報は転送しないでください。
 * `setHeaders`（小文字のキーを持つ辞書）- リクエストにヘッダーを設定します。既存の値は上書きされます。
   例: `{"x-powered-by": "CORS Relay"}`
 * `corsMaxAge`（数値）- 指定した値を秒数として `Access-Control-Max-Age` ヘッダーを追加します。

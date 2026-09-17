@@ -25,9 +25,10 @@ cors_proxy.createServer({
   originWhitelist: originWhitelist,
   requireHeader: ['origin', 'x-requested-with'],
   checkRateLimit: checkRateLimit,
+  allowSensitiveHeaders: parseEnvList(process.env.CORSANYWHERE_ALLOW_SENSITIVE_HEADERS).map(function(header) {
+    return header.trim();
+  }),
   removeHeaders: [
-    'cookie',
-    'cookie2',
     // Strip Heroku-specific headers
     'x-request-start',
     'x-request-id',

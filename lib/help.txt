@@ -8,7 +8,10 @@ Usage:
 
 If the protocol is omitted, it defaults to http (https if port 443 is specified).
 
-Cookies are disabled and stripped from requests.
+Cookie, Cookie2, Authorization, Proxy-Authorization, X-Api-Key and X-Auth-Token
+are stripped from requests by default. The operator can explicitly allow selected headers.
+These headers are always stripped when a followed redirect changes scheme, hostname or port.
+Set-Cookie and Set-Cookie2 response headers are always stripped.
 
 Redirects are automatically followed. For debugging purposes, each followed redirect results
 in the addition of a X-CORS-Redirect-n header, where n starts at 1. These headers are not

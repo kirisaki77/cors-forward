@@ -1,12 +1,14 @@
-[![Build Status](https://travis-ci.com/Rob--W/cors-anywhere.svg?branch=master)](https://travis-ci.com/Rob--W/cors-anywhere)
-[![Coverage Status](https://coveralls.io/repos/github/Rob--W/cors-anywhere/badge.svg?branch=master)](https://coveralls.io/github/Rob--W/cors-anywhere?branch=master)
+[![CI](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml)
 
 **CORS Anywhere** is a NodeJS proxy which adds CORS headers to the proxied request.
 
 [日本語版 README](README.ja.md)
 
 This fork was created to address security vulnerabilities in the libraries that
-CORS Anywhere depends on.
+CORS Anywhere depends on. It is maintained at
+[kirisaki77/cors-anywhere](https://github.com/kirisaki77/cors-anywhere), based on
+[Rob--W/cors-anywhere](https://github.com/Rob--W/cors-anywhere). Report issues in
+[this fork](https://github.com/kirisaki77/cors-anywhere/issues).
 
 The url to proxy is literally taken from the path, validated and proxied. The protocol
 part of the proxied URI is optional, and defaults to "http". If port 443 is specified,
@@ -55,6 +57,39 @@ or deployment has no vulnerabilities.
 The certificate and private key under `test/` are public, self-signed test
 fixtures only. Never use them for a deployed server.
 
+GitHub Actions runs lint, tests, coverage, dependency audit and package checks on
+Linux and Windows with Node.js 22 and 24, plus Node.js 22.13.0 on Linux.
+Coverage is available as an artifact of each successful CI job.
+
+To run this fork from source:
+
+```sh
+git clone https://github.com/kirisaki77/cors-anywhere.git
+cd cors-anywhere
+npm ci
+node server.js
+```
+
+The npm name `cors-anywhere` identifies the upstream package; installing it from
+the registry does not select this fork. A separate npm release needs its own
+package name and version. The examples below use the package's existing API name.
+
+## Deployment security
+
+This proxy accepts caller-selected destinations and follows redirects. It does
+not block private, loopback, link-local or cloud metadata addresses. Run it in
+an isolated network and enforce outbound destination restrictions with a
+firewall or an enforcing egress proxy, covering IPv4, IPv6, DNS resolution and
+redirect destinations. A check of only the first URL is insufficient.
+
+Restrict incoming access using authentication at a reverse proxy or a trusted
+network boundary. `originWhitelist`, `requireHeader` and Origin-based rate limits
+are browser usage controls: non-browser clients can supply arbitrary Origin
+headers. These settings alone do not authenticate users or prevent open-proxy abuse.
+Use HTTPS for clients and configure request size, timeout and rate limits at the
+ingress. Review forwarded headers and avoid attaching credentials to arbitrary
+destinations. Treat configured intermediate proxies as part of the trust boundary.
+
 ## Example
 
 ```javascript
@@ -81,7 +116,7 @@ Request examples:
 * `http://localhost:8080/` - Shows usage text, as defined in `lib/help.txt`
 * `http://localhost:8080/favicon.ico` - Replies 404 Not found
 
-Live examples:
+Upstream demos (not operated by this fork):
 
 * https://cors-anywhere.herokuapp.com/
 * https://robwu.nl/cors-anywhere.html - This demo shows how to use the API.
@@ -177,7 +212,7 @@ see the sample code in [test/test-examples.js](test/test-examples.js).
 
 ### Demo server
 
-A public demo of CORS Anywhere is available at https://cors-anywhere.herokuapp.com. This server is
+The upstream project provides a public demo of CORS Anywhere at https://cors-anywhere.herokuapp.com. This server is
 only provided so that you can easily and quickly try out CORS Anywhere. To ensure that the service
 stays available to everyone, the number of requests per period is limited, except for requests from
 some explicitly whitelisted origins.
@@ -187,7 +222,7 @@ see: https://github.com/Rob--W/cors-anywhere/issues/301
 
 If you expect lots of traffic, please host your own instance of CORS Anywhere, and make sure that
 the CORS Anywhere server only whitelists your site to prevent others from using your instance of
-CORS Anywhere as an open proxy.
+CORS Anywhere unintentionally. Also apply the access controls described in Deployment security.
 
 For instance, to run a CORS Anywhere server that accepts any request from some example.com sites on
 port 8080, use:
@@ -197,10 +232,9 @@ export CORSANYWHERE_WHITELIST=https://example.com,http://example.com,http://exam
 node server.js
 ```
 
-This application can immediately be run on Heroku, see https://devcenter.heroku.com/articles/nodejs
-for instructions. Note that their [Acceptable Use Policy](https://www.heroku.com/policy/aup) forbids
-the use of Heroku for operating an open proxy, so make sure that you either enforce a whitelist as
-shown above, or severly rate-limit the number of requests.
+For Heroku deployment instructions, see https://devcenter.heroku.com/articles/nodejs.
+Check your hosting provider's current proxy usage policy and apply the deployment
+security controls above before exposing the service.
 
 For example, to blacklist abuse.example.com and rate-limit everything to 50 requests per 3 minutes,
 except for my.example.com and my2.example.com (which may be unlimited), use:
@@ -216,6 +250,7 @@ node server.js
 ## License
 
 Copyright (C) 2013 - 2021 Rob Wu <rob@robwu.nl>
+Copyright (C) 2026 kirisaki77 (modifications)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

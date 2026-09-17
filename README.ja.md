@@ -1,11 +1,12 @@
-[![Build Status](https://travis-ci.com/Rob--W/cors-anywhere.svg?branch=master)](https://travis-ci.com/Rob--W/cors-anywhere)
-[![Coverage Status](https://coveralls.io/repos/github/Rob--W/cors-anywhere/badge.svg?branch=master)](https://coveralls.io/github/Rob--W/cors-anywhere?branch=master)
+[![CI](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml)
 
 **CORS Anywhere** は、プロキシ経由のリクエストに CORS ヘッダーを追加する NodeJS プロキシです。
 
 [English README](README.md)
 
 このフォークは、CORS Anywhere が依存するライブラリの脆弱性に対処することを目的として作成しました。
+元プロジェクトは [Rob--W/cors-anywhere](https://github.com/Rob--W/cors-anywhere) です。
+このforkへの問い合わせは [Issues](https://github.com/kirisaki77/cors-anywhere/issues) を使用してください。
 
 プロキシ先の URL はリクエストのパスから取得し、検証したうえでプロキシ処理を行います。
 プロキシ先 URI のプロトコルは省略可能で、既定値は `http` です。ポートに 443 を指定した場合は、
@@ -14,6 +15,64 @@
 このパッケージは、Cookie を除き、HTTP メソッドやヘッダーを制限しません。
 [ユーザー認証情報](http://www.w3.org/TR/cors/#user-credentials)を使用するリクエストは許可されません。
 ブラウザーからの直接アクセスを防ぐなどの目的で、プロキシ処理に特定のヘッダーを必須とする設定も可能です。
+
+## 開発環境と依存関係
+
+Node.js 22.13以上の22系、または24以上が必要です。サポート中のLTS版を使用してください。
+このforkの取得・起動方法は次のとおりです。
+
+```sh
+git clone https://github.com/kirisaki77/cors-anywhere.git
+cd cors-anywhere
+npm ci
+node server.js
+```
+
+本番用の依存だけを取得する場合は `npm ci --omit=dev` を使います。
+npmの `cors-anywhere` は元プロジェクトのパッケージ名です。レジストリからその名前で
+インストールしても、このforkにはなりません。npmへ別途公開する際は独自の名前とバージョンが必要です。
+以下の使用例では既存のAPI名を使用しています。
+
+```sh
+npm run lint
+npm test
+npm run test-coverage
+npm audit
+```
+
+プロキシ実装は [httpxy 0.5.5](https://github.com/unjs/httpxy) です。
+CommonJSの `require('cors-anywhere').createServer(options)` は引き続き使えます。
+対応Node.jsはhttpxyのESモジュールを同期ロードできます。
+`httpProxyOptions` はhttpxyの設定に渡されます。既定の `xfwd: true` では
+`X-Forwarded-Host` も転送します。接続は既定では再利用せず、必要なら
+`httpProxyOptions.agent` を指定します。
+
+301／302／303は中間レスポンスを読み捨てた後、`maxRedirects` の上限までGETで追従します。
+307／308はLocationを書き換えてクライアントへ返します。
+`Expect: 100-continue` は入口のHTTPサーバーで応答し、転送先へは送信しません。
+環境変数で指定した中継プロキシには絶対URL形式で転送します。
+
+ESLintのflat configとc8を使用しています。旧Istanbul／Coveralls CLIは削除しました。
+カバレッジは `coverage/lcov.info` に出力します。GitHub ActionsではLinux／Windowsの
+Node.js 22・24と、Linuxの22.13.0でlint・テスト・カバレッジ・依存監査・配布対象を確認します。
+成功したCIジョブのartifactからカバレッジを取得できます。
+
+依存更新時は `package-lock.json` をコミットして上記検証を再実行してください。
+監査0件は、その時点の既知の依存脆弱性が検出されなかったという意味で、アプリ全体の安全性を保証しません。
+`test/cert.pem` と `test/key.pem` は公開テスト用の自己署名証明書・鍵です。本番では使用しないでください。
+
+## 公開運用時の設定
+
+このプロキシは利用者が指定した宛先へ接続し、リダイレクトにも追従します。
+プライベートIP・ループバック・リンクローカル・クラウドのメタデータ宛先を自動では遮断しません。
+隔離したネットワークで動かし、ファイアウォールや宛先制限を行う中継プロキシで外向き通信を制限してください。
+IPv4／IPv6、DNS解決後の宛先、リダイレクト先も対象にします。最初のURLだけの検査では不十分です。
+
+入口にはリバースプロキシでの認証や、信頼できるネットワークからのアクセス制限を設けてください。
+`originWhitelist`・`requireHeader`・Origin単位のレート制限だけでは利用者を認証できません。
+ブラウザー以外のクライアントはOriginなどのヘッダーを任意に指定できます。
+クライアントとの通信にはHTTPSを使い、入口でリクエストサイズ・タイムアウト・レート制限を設定してください。
+任意の転送先へ認証情報を付与しないよう転送ヘッダーも確認し、中継プロキシの管理者も信頼範囲に含めてください。
 
 ## 使用例
 
@@ -41,7 +100,7 @@ cors_proxy.createServer({
 * `http://localhost:8080/` - `lib/help.txt` に定義された使い方を表示します。
 * `http://localhost:8080/favicon.ico` - 404 Not found を返します。
 
-公開されている使用例:
+元プロジェクトの公開デモ（このforkの運営ではありません）:
 
 * https://cors-anywhere.herokuapp.com/
 * https://robwu.nl/cors-anywhere.html - API の使用方法を示すデモです。
@@ -123,9 +182,11 @@ jQuery.ajaxPrefilter(function(options) {
 
 高度な用途向けに、次のオプションも用意されています。
 
-* `httpProxyOptions` - 内部では [http-proxy](https://github.com/nodejitsu/node-http-proxy) を使用してプロキシ処理を行います。
-  http-proxy にオプションを渡す必要がある場合に使用してください。
-  オプションの詳細は[こちら](https://github.com/nodejitsu/node-http-proxy#options)を参照してください。
+* `httpProxyOptions` - 内部では [httpxy](https://github.com/unjs/httpxy) を使用してプロキシ処理を行います。
+  httpxy にオプションを渡す必要がある場合に使用してください。
+  オプションの詳細は[こちら](https://github.com/unjs/httpxy#options)を参照してください。
+  `target`・`changeOrigin`・`prependPath`・`headers`・`followRedirects` はCORS Anywhereが管理します。
+  リダイレクト回数は `maxRedirects` で設定してください。
 * `httpsOptions` - 指定すると `https.Server` を作成します。指定したオプションは
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) に渡されます。
 
@@ -134,7 +195,7 @@ CORS Anywhere を拡張する、さらに高度な使用例については、
 
 ### デモサーバー
 
-CORS Anywhere の公開デモは https://cors-anywhere.herokuapp.com で提供されています。
+元プロジェクトの公開デモは https://cors-anywhere.herokuapp.com で提供されています。
 このサーバーは、CORS Anywhere を手軽に試すために用意されています。
 すべての利用者が使える状態を維持するため、一部の明示的に許可されたオリジンを除き、
 一定時間内のリクエスト数が制限されています。
@@ -143,7 +204,7 @@ CORS Anywhere の公開デモは https://cors-anywhere.herokuapp.com で提供�
 詳細: https://github.com/Rob--W/cors-anywhere/issues/301
 
 大量のトラフィックが見込まれる場合は、CORS Anywhere を自身でホストしてください。
-その際は、自分のサイトのみを許可リストに登録し、第三者がオープンプロキシとして利用できないようにしてください。
+その際は、自分のサイトを許可リストに登録し、「公開運用時の設定」に従って認証と通信先制限も設定してください。
 
 たとえば、example.com のサイトからのリクエストを受け付けるサーバーをポート 8080 で起動するには、次のようにします。
 
@@ -153,9 +214,9 @@ export CORSANYWHERE_WHITELIST=https://example.com,http://example.com,http://exam
 node server.js
 ```
 
-このアプリケーションは Heroku でも実行できます。手順は https://devcenter.heroku.com/articles/nodejs を参照してください。
-Heroku の[利用規定](https://www.heroku.com/policy/aup)ではオープンプロキシの運用が禁止されているため、
-上記のように許可リストを適用するか、リクエスト数を厳しく制限してください。
+Heroku へのデプロイ手順は https://devcenter.heroku.com/articles/nodejs を参照してください。
+サービスを外部公開する前に、ホスティング事業者の現在のプロキシ利用規定を確認し、
+「公開運用時の設定」に記載した対策を適用してください。
 
 たとえば、abuse.example.com を拒否し、my.example.com と my2.example.com を除くすべてのオリジンについて、
 リクエスト数を 3 分間に 50 回までに制限するには、次のようにします。
@@ -173,6 +234,7 @@ node server.js
 ライセンス条文は原文のまま掲載します。
 
 Copyright (C) 2013 - 2021 Rob Wu <rob@robwu.nl>
+Copyright (C) 2026 kirisaki77 (modifications)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

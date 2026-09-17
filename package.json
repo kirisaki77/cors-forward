@@ -1,7 +1,7 @@
 {
-  "name": "cors-anywhere",
+  "name": "cors-relay",
   "version": "0.4.4",
-  "description": "CORS Anywhere is a reverse proxy which adds CORS headers to the proxied request. Request URL is taken from the path",
+  "description": "CORS Relay is a reverse proxy which adds CORS headers to the proxied request. Request URL is taken from the path",
   "license": "MIT",
   "author": "kirisaki77",
   "contributors": [
@@ -9,10 +9,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kirisaki77/cors-anywhere.git"
+    "url": "https://github.com/kirisaki77/cors-relay.git"
   },
   "bugs": {
-    "url": "https://github.com/kirisaki77/cors-anywhere/issues/"
+    "url": "https://github.com/kirisaki77/cors-relay/issues/"
   },
   "keywords": [
     "cors",

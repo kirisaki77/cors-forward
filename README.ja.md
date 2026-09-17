@@ -1,12 +1,12 @@
-[![CI](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-anywhere/actions/workflows/ci.yml)
+[![CI](https://github.com/kirisaki77/cors-relay/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-relay/actions/workflows/ci.yml)
 
-**CORS Anywhere** は、プロキシ経由のリクエストに CORS ヘッダーを追加する NodeJS プロキシです。
+**CORS Relay** は、プロキシ経由のリクエストに CORS ヘッダーを追加する NodeJS プロキシです。
 
 [English README](README.md)
 
 このフォークは、CORS Anywhere が依存するライブラリの脆弱性に対処することを目的として作成しました。
 元プロジェクトは [Rob--W/cors-anywhere](https://github.com/Rob--W/cors-anywhere) です。
-このforkへの問い合わせは [Issues](https://github.com/kirisaki77/cors-anywhere/issues) を使用してください。
+このforkへの問い合わせは [Issues](https://github.com/kirisaki77/cors-relay/issues) を使用してください。
 
 プロキシ先の URL はリクエストのパスから取得し、検証したうえでプロキシ処理を行います。
 プロキシ先 URI のプロトコルは省略可能で、既定値は `http` です。ポートに 443 を指定した場合は、
@@ -22,16 +22,18 @@ Node.js 22.13以上の22系、または24以上が必要です。サポート中
 このforkの取得・起動方法は次のとおりです。
 
 ```sh
-git clone https://github.com/kirisaki77/cors-anywhere.git
-cd cors-anywhere
+git clone https://github.com/kirisaki77/cors-relay.git
+cd cors-relay
 npm ci
 node server.js
 ```
 
 本番用の依存だけを取得する場合は `npm ci --omit=dev` を使います。
 npmの `cors-anywhere` は元プロジェクトのパッケージ名です。レジストリからその名前で
-インストールしても、このforkにはなりません。npmへ別途公開する際は独自の名前とバージョンが必要です。
-以下の使用例では既存のAPI名を使用しています。
+インストールしても、このforkにはなりません。本リポジトリのパッケージ名は `cors-relay` です。
+改名によってnpmへの公開や同名パッケージの所有権取得が行われるわけではありません。
+公開するまでは上記のソースから起動してください。以下の使用例は、本パッケージを
+`cors-relay` としてインストールした環境を想定しています。
 
 ```sh
 npm run lint
@@ -41,7 +43,8 @@ npm audit
 ```
 
 プロキシ実装は [httpxy 0.5.5](https://github.com/unjs/httpxy) です。
-CommonJSの `require('cors-anywhere').createServer(options)` は引き続き使えます。
+パッケージ名の変更に伴い、CommonJSでは `require('cors-relay').createServer(options)` を使用します。
+`createServer(options)` のAPIは維持しています。
 対応Node.jsはhttpxyのESモジュールを同期ロードできます。
 `httpProxyOptions` はhttpxyの設定に渡されます。既定の `xfwd: true` では
 `X-Forwarded-Host` も転送します。接続は既定では再利用せず、必要なら
@@ -96,13 +99,13 @@ var host = process.env.HOST || '0.0.0.0';
 // PORT 環境変数で待ち受けるポートを指定します。
 var port = process.env.PORT || 8080;
 
-var cors_proxy = require('cors-anywhere');
+var cors_proxy = require('cors-relay');
 cors_proxy.createServer({
     originWhitelist: [], // すべてのオリジンを許可します。
     requireHeader: ['origin', 'x-requested-with'],
     removeHeaders: ['cookie', 'cookie2']
 }).listen(port, host, function() {
-    console.log('Running CORS Anywhere on ' + host + ':' + port);
+    console.log('Running CORS Relay on ' + host + ':' + port);
 });
 ```
 
@@ -188,7 +191,7 @@ jQuery.ajaxPrefilter(function(options) {
 * `removeHeaders`（小文字の文字列の配列）- リクエストから指定したヘッダーを除去します。
   例: `["cookie"]`
 * `setHeaders`（小文字のキーを持つ辞書）- リクエストにヘッダーを設定します。既存の値は上書きされます。
-  例: `{"x-powered-by": "CORS Anywhere"}`
+  例: `{"x-powered-by": "CORS Relay"}`
 * `corsMaxAge`（数値）- 指定した値を秒数として `Access-Control-Max-Age` ヘッダーを追加します。
   例: `600` - ブラウザーが CORS プリフライトリクエストを 10 分間キャッシュできるようにします。
 * `helpFile`（文字列）- トップページに表示するヘルプファイルを指定します。
@@ -199,12 +202,12 @@ jQuery.ajaxPrefilter(function(options) {
 * `httpProxyOptions` - 内部では [httpxy](https://github.com/unjs/httpxy) を使用してプロキシ処理を行います。
   httpxy にオプションを渡す必要がある場合に使用してください。
   オプションの詳細は[こちら](https://github.com/unjs/httpxy#options)を参照してください。
-  `target`・`changeOrigin`・`prependPath`・`headers`・`followRedirects` はCORS Anywhereが管理します。
+  `target`・`changeOrigin`・`prependPath`・`headers`・`followRedirects` はCORS Relayが管理します。
   リダイレクト回数は `maxRedirects` で設定してください。
 * `httpsOptions` - 指定すると `https.Server` を作成します。指定したオプションは
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) に渡されます。
 
-CORS Anywhere を拡張する、さらに高度な使用例については、
+CORS Relay を拡張する、さらに高度な使用例については、
 [test/test-examples.js](test/test-examples.js) を参照してください。
 
 ### デモサーバー
@@ -217,7 +220,7 @@ CORS Anywhere を拡張する、さらに高度な使用例については、
 **注意: 2021 年 2 月以降、デモサーバーへのアクセスにはオプトインが必要です。**
 詳細: https://github.com/Rob--W/cors-anywhere/issues/301
 
-大量のトラフィックが見込まれる場合は、CORS Anywhere を自身でホストしてください。
+大量のトラフィックが見込まれる場合は、CORS Relay を自身でホストしてください。
 その際は、自分のサイトを許可リストに登録し、「公開運用時の設定」に従って認証と通信先制限も設定してください。
 
 たとえば、example.com のサイトからのリクエストを受け付けるサーバーをポート 8080 で起動するには、次のようにします。

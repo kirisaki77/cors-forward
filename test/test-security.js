@@ -80,7 +80,7 @@ describe('Proxy dependency security regressions', function() {
   });
 
   [false, true].forEach(function(expectContinue) {
-    it('forwards a large POST through CORS Anywhere (Expect=' + expectContinue + ')', function(done) {
+    it('forwards a large POST through CORS Relay (Expect=' + expectContinue + ')', function(done) {
       server = createServer({getProxyForUrl: function() { return ''; }});
       server.listen(0, '127.0.0.1', function() {
         post('/' + target, expectContinue, function(res) {

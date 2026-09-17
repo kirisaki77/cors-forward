@@ -28,7 +28,7 @@ describe('memory usage', function() {
   beforeEach(function(done) {
     var cors_module_path = path.join(__dirname, 'child');
     var args = [];
-    // Uncomment this if you want to compare the performance of CORS Anywhere
+    // Uncomment this if you want to compare the performance of CORS Relay
     // with the standard no-op http module.
     // args.push('use-http-instead-of-cors-anywhere');
     var nodeOptionsArgs = ['--expose-gc'];
@@ -56,7 +56,7 @@ describe('memory usage', function() {
   });
 
   /**
-   * Perform N CORS Anywhere proxy requests to a simple test server.
+   * Perform N CORS Relay proxy requests to a simple test server.
    *
    * @param {number} n - number of repetitions.
    * @param {number} requestSize - Approximate size of request in kilobytes.

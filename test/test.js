@@ -984,7 +984,7 @@ describe('removeHeaders', function() {
 describe('setHeaders', function() {
   before(function() {
     cors_anywhere = createServer({
-      setHeaders: {'x-powered-by': 'CORS Anywhere'},
+      setHeaders: {'x-powered-by': 'CORS Relay'},
     });
     cors_anywhere_port = cors_anywhere.listen(0).address().port;
   });
@@ -996,7 +996,7 @@ describe('setHeaders', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
-        'x-powered-by': 'CORS Anywhere',
+        'x-powered-by': 'CORS Relay',
       }, done);
   });
 
@@ -1007,7 +1007,7 @@ describe('setHeaders', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
-        'x-powered-by': 'CORS Anywhere',
+        'x-powered-by': 'CORS Relay',
       }, done);
   });
 });
@@ -1017,7 +1017,7 @@ describe('setHeaders + removeHeaders', function() {
     // setHeaders takes precedence over removeHeaders
     cors_anywhere = createServer({
       removeHeaders: ['x-powered-by'],
-      setHeaders: {'x-powered-by': 'CORS Anywhere'},
+      setHeaders: {'x-powered-by': 'CORS Relay'},
     });
     cors_anywhere_port = cors_anywhere.listen(0).address().port;
   });
@@ -1029,7 +1029,7 @@ describe('setHeaders + removeHeaders', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
-        'x-powered-by': 'CORS Anywhere',
+        'x-powered-by': 'CORS Relay',
       }, done);
   });
 
@@ -1040,7 +1040,7 @@ describe('setHeaders + removeHeaders', function() {
       .expect('Access-Control-Allow-Origin', '*')
       .expectJSON({
         host: 'example.com',
-        'x-powered-by': 'CORS Anywhere',
+        'x-powered-by': 'CORS Relay',
       }, done);
   });
 });

@@ -3,6 +3,11 @@
 
 **CORS Anywhere** is a NodeJS proxy which adds CORS headers to the proxied request.
 
+[日本語版 README](README.ja.md)
+
+This fork was created to address security vulnerabilities in the libraries that
+CORS Anywhere depends on.
+
 The url to proxy is literally taken from the path, validated and proxied. The protocol
 part of the proxied URI is optional, and defaults to "http". If port 443 is specified,
 the protocol defaults to "https".

@@ -1,6 +1,4 @@
-require('./setup');
-
-var createServer = require('../').createServer;
+var createServer = require('./setup').createServer;
 var request = require('supertest');
 var path = require('path');
 var http = require('http');
@@ -188,7 +186,7 @@ describe('Basic functionality', function() {
       .expect('x-request-url', 'http://example.com/redirect')
       .expect('x-cors-redirect-1', '302 http://example.com/redirecttarget')
       .expect('x-final-url', 'http://example.com/redirecttarget')
-      .expect('access-control-expose-headers', /some-header,x-final-url/)
+      .expect('access-control-expose-headers', /some-header,.*x-final-url/)
       .expectNoHeader('header-at-redirect')
       .expect(200, undefined, done);
   });
@@ -202,7 +200,7 @@ describe('Basic functionality', function() {
       .expect('x-request-url', 'http://example.com/redirect')
       .expect('x-cors-redirect-1', '302 http://example.com/redirecttarget')
       .expect('x-final-url', 'http://example.com/redirecttarget')
-      .expect('access-control-expose-headers', /some-header,x-final-url/)
+      .expect('access-control-expose-headers', /some-header,.*x-final-url/)
       .expectNoHeader('header-at-redirect')
       .expect(200, 'redirect target', done);
   });
@@ -425,7 +423,7 @@ describe('Proxy errors', function() {
     request(cors_anywhere)
       .get('/example.com/proxyerror')
       .expect('Access-Control-Allow-Origin', '*')
-      .expect(404, 'Not found because of proxy error: Error: throw node', done);
+      .expect(404, 'Not found because of proxy error: Error: socket hang up', done);
   });
 
   it('Content-Length mismatch', function(done) {
@@ -480,7 +478,7 @@ describe('Proxy errors', function() {
       });
       cors_anywhere_port = cors_anywhere.listen(0).address().port;
       request(cors_anywhere)
-        .get('/' + bad_tcp_server_url) // Any URL that isn't intercepted by Nock would do.
+        .get('/' + bad_tcp_server_url)
         .expect('Access-Control-Allow-Origin', '*')
         .expect(404, 'Not found because of proxy error: ' + errorMessage, done);
     });
@@ -1157,7 +1155,7 @@ describe('httpProxyOptions.getProxyForUrl', function() {
   var proxy_server;
   var proxy_url;
   before(function() {
-    // Using a real server instead of a mock because Nock doesn't can't mock proxies.
+    // Use a local upstream proxy to verify proxy selection.
     proxy_server = http.createServer(function(req, res) {
       res.end(req.method + ' ' + req.url + ' Host=' + req.headers.host);
     });

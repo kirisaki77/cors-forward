@@ -49,6 +49,10 @@ Development tooling uses ESLint flat configuration and c8 coverage; the old
 Istanbul and Coveralls CLI dependencies have been removed. Coverage reports
 remain available in `coverage/lcov.info`.
 
+HTTP fixtures use Node.js built-in HTTP/HTTPS servers on loopback interfaces,
+without Nock. A test-only agent routes example hosts locally while preserving
+request headers, and trusts the fixture certificate only for these hosts.
+
 Commit `package-lock.json` when updating dependencies, and rerun the checks
 above. A clean dependency audit means no known advisories were reported for
 that dependency tree at that time; it is not a guarantee that the application

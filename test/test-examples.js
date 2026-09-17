@@ -8,9 +8,7 @@
  * These examples are provided as-is without guarantees. Use at your own risk.
  */
 
-require('./setup');
-
-var createServer = require('../').createServer;
+var createServer = require('./setup').createServer;
 var assert = require('assert');
 var request = require('supertest');
 

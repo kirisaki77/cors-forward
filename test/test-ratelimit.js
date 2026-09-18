@@ -17,8 +17,8 @@ function assertLimited(rateLimitReturnValue, limit, period) {
   } else {
     msg = 'The number of requests is limited to ' + limit + ' per ' + period + ' minutes. ';
   }
-  msg += 'Please self-host CORS Relay if you need more quota. ' +
-    'See https://github.com/kirisaki77/cors-relay#demo-server';
+  msg += 'Please self-host CORS Forward if you need more quota. ' +
+    'See https://github.com/kirisaki77/cors-forward#demo-server';
   assert.equal(rateLimitReturnValue, msg);
 }
 

@@ -43,12 +43,23 @@ package dependencies, run lifecycle scripts, or restore caches. Actions are pinn
 commit hashes; Dependabot proposes updates through PRs. The publishing job downloads
 the same-run archive and verifies its checksum before publishing.
 
+The publish job holds a package-wide concurrency lock across all release tags;
+up to 100 pending jobs can wait without canceling earlier ones. Tests and packaging
+remain parallel. After acquiring the lock, it fetches fresh public npm metadata and
+refuses already-published versions or versions that would move `latest` or `next`
+backward. A first `next` release is allowed, but it must be newer than `latest`.
+Registry errors, timeouts and invalid metadata stop publication. The dependency-free
+version guard is included and checksummed alongside the tarball, not shipped to npm.
+These protections cover this workflow; do not publish releases manually outside it.
+
 Run **Publish npm package** manually on `master` to test validation, CI, packaging and
 the isolated installation without publishing or requesting an OIDC credential.
 
 Never move or reuse a released tag/version. A failed run before publication can be
-retried with the same tag. If publication already succeeded, release a new version
-for fixes instead of overwriting it. Investigate a failed audit or test before release.
+retried with the same tag only if its version is still ahead of its distribution tag.
+If a newer release has overtaken it, create a new version instead. If publication
+already succeeded, release a new version for fixes instead of overwriting it.
+Investigate a failed audit or test before release.
 
 The initial interactive release has no CI-generated provenance. Subsequent releases
 must use the tag workflow. A dry run does not prove the npm OIDC exchange works; the

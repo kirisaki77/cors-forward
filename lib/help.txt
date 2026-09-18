@@ -29,5 +29,5 @@ it's recommended to not manually set these headers in your code.
 
 
 Upstream demo :   https://robwu.nl/cors-anywhere.html
-Source code   :   https://github.com/kirisaki77/cors-relay/
-Documentation :   https://github.com/kirisaki77/cors-relay/#documentation
+Source code   :   https://github.com/kirisaki77/cors-forward/
+Documentation :   https://github.com/kirisaki77/cors-forward/#documentation

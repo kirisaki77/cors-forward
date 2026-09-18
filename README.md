@@ -1,14 +1,14 @@
-[![CI](https://github.com/kirisaki77/cors-relay/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-relay/actions/workflows/ci.yml)
+[![CI](https://github.com/kirisaki77/cors-forward/actions/workflows/ci.yml/badge.svg)](https://github.com/kirisaki77/cors-forward/actions/workflows/ci.yml)
 
-**CORS Relay** is a NodeJS proxy which adds CORS headers to the proxied request.
+**CORS Forward** is a NodeJS proxy which adds CORS headers to the proxied request.
 
 [日本語版 README](README.ja.md)
 
 This fork was created to address security vulnerabilities in the libraries that
 CORS Anywhere depends on. It is maintained at
-[kirisaki77/cors-relay](https://github.com/kirisaki77/cors-relay), based on
+[kirisaki77/cors-forward](https://github.com/kirisaki77/cors-forward), based on
 [Rob--W/cors-anywhere](https://github.com/Rob--W/cors-anywhere). Report issues in
-[this fork](https://github.com/kirisaki77/cors-relay/issues).
+[this fork](https://github.com/kirisaki77/cors-forward/issues).
 
 The url to proxy is literally taken from the path, validated and proxied. The protocol
 part of the proxied URI is optional, and defaults to "http". If port 443 is specified,
@@ -36,7 +36,7 @@ the upstream may return 401/403 or treat the request as unauthenticated.
 To forward only the credentials required by the destination, configure the server:
 
 ```javascript
-var relay = require('cors-relay');
+var relay = require('cors-forward');
 relay.createServer({
   allowSensitiveHeaders: ['authorization', 'cookie'],
 }).listen(8080, '127.0.0.1');
@@ -72,14 +72,14 @@ npm audit
 ```
 
 The proxy dependency is pinned to [`httpxy` 0.5.5](https://github.com/unjs/httpxy).
-The package name is now `cors-relay`; use `require('cors-relay').createServer(options)`.
+The package name is now `cors-forward`; use `require('cors-forward').createServer(options)`.
 The `createServer(options)` API is retained;
 the supported Node.js versions can load httpxy's ES module synchronously.
 The existing `httpProxyOptions` option now configures httpxy. With the default
 `xfwd: true`, it also forwards `X-Forwarded-Host`. Connections are not pooled by
 default; a custom `httpProxyOptions.agent` can opt into connection reuse.
 
-CORS Relay controls destination selection and redirect following: 301/302/303
+CORS Forward controls destination selection and redirect following: 301/302/303
 become GET requests up to `maxRedirects`, while 307/308 are returned with rewritten
 locations. Intermediate responses are drained before following the next hop.
 `Expect: 100-continue` is answered by the local HTTP server and is not forwarded
@@ -120,17 +120,17 @@ Coverage is available as an artifact of each successful CI job.
 To run this fork from source:
 
 ```sh
-git clone https://github.com/kirisaki77/cors-relay.git
-cd cors-relay
+git clone https://github.com/kirisaki77/cors-forward.git
+cd cors-forward
 npm ci
 node server.js
 ```
 
 The npm name `cors-anywhere` identifies the upstream package; installing it from
 the registry does not select this fork. This repository's package name is
-`cors-relay`. Renaming it does not publish it to npm or establish ownership of
+`cors-forward`. Renaming it does not publish it to npm or establish ownership of
 that registry name. Use the source checkout above until a release is published.
-The examples below assume this package is installed as `cors-relay`.
+The examples below assume this package is installed as `cors-forward`.
 
 ## Deployment security
 
@@ -156,13 +156,13 @@ var host = process.env.HOST || '0.0.0.0';
 // Listen on a specific port via the PORT environment variable
 var port = process.env.PORT || 8080;
 
-var cors_proxy = require('cors-relay');
+var cors_proxy = require('cors-forward');
 cors_proxy.createServer({
     originWhitelist: [], // Allow all origins
     requireHeader: ['origin', 'x-requested-with'],
     removeHeaders: ['cookie', 'cookie2']
 }).listen(port, host, function() {
-    console.log('Running CORS Relay on ' + host + ':' + port);
+    console.log('Running CORS Forward on ' + host + ':' + port);
 });
 
 ```
@@ -265,7 +265,7 @@ proxy requests. The following options are supported:
   explicitly enable the needed headers. Only enable credentials intended for the requested target;
   access credentials used to authenticate to the relay should not be forwarded.
 * dictionary of lowercase strings `setHeaders` - Set headers for the request (overwrites existing ones).  
-  Example: `{"x-powered-by": "CORS Relay"}`
+  Example: `{"x-powered-by": "CORS Forward"}`
 * number `corsMaxAge` - If set, an Access-Control-Max-Age request header with this value (in seconds) will be added.  
   Example: `600` - Allow CORS preflight request to be cached by the browser for 10 minutes.
 * string `helpFile` - Set the help file (shown at the homepage).  
@@ -276,12 +276,12 @@ For advanced users, the following options are also provided.
 * `httpProxyOptions` - Under the hood, [httpxy](https://github.com/unjs/httpxy)
   is used to proxy requests. Use this option if you really need to pass options
   to httpxy. See its [options](https://github.com/unjs/httpxy#options).
-  CORS Relay manages `target`, `changeOrigin`, `prependPath`, `headers` and
+  CORS Forward manages `target`, `changeOrigin`, `prependPath`, `headers` and
   `followRedirects` itself; use `maxRedirects` to control redirect following.
 * `httpsOptions` - If set, a `https.Server` will be created. The given options are passed to the
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) method.
 
-For even more advanced usage (building upon CORS Relay),
+For even more advanced usage (building upon CORS Forward),
 see the sample code in [test/test-examples.js](test/test-examples.js).
 
 ### Demo server
@@ -294,11 +294,11 @@ some explicitly whitelisted origins.
 **Note: as of February 2021, access to the demo server requires an opt-in**,
 see: https://github.com/Rob--W/cors-anywhere/issues/301
 
-If you expect lots of traffic, please host your own instance of CORS Relay, and make sure that
-the CORS Relay server only whitelists your site to prevent others from using your instance of
-CORS Relay unintentionally. Also apply the access controls described in Deployment security.
+If you expect lots of traffic, please host your own instance of CORS Forward, and make sure that
+the CORS Forward server only whitelists your site to prevent others from using your instance of
+CORS Forward unintentionally. Also apply the access controls described in Deployment security.
 
-For instance, to run a CORS Relay server that accepts any request from some example.com sites on
+For instance, to run a CORS Forward server that accepts any request from some example.com sites on
 port 8080, use:
 ```
 export PORT=8080

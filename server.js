@@ -4,7 +4,7 @@ var host = process.env.HOST || '0.0.0.0';
 var port = process.env.PORT || 8080;
 
 // Grab the blacklist from the command-line so that we can update the blacklist without deploying
-// again. CORS Relay is open by design, and this blacklist is not used, except for countering
+// again. CORS Forward is open by design, and this blacklist is not used, except for countering
 // immediate abuse (e.g. denial of service). If you want to block all origins except for some,
 // use originWhitelist instead.
 var originBlacklist = parseEnvList(process.env.CORSANYWHERE_BLACKLIST);
@@ -16,7 +16,7 @@ function parseEnvList(env) {
   return env.split(',');
 }
 
-// Set up rate-limiting to avoid abuse of the public CORS Relay server.
+// Set up rate-limiting to avoid abuse of the public CORS Forward server.
 var checkRateLimit = require('./lib/rate-limit')(process.env.CORSANYWHERE_RATELIMIT);
 
 var cors_proxy = require('./lib/cors-anywhere');
@@ -46,5 +46,5 @@ cors_proxy.createServer({
     xfwd: false,
   },
 }).listen(port, host, function() {
-  console.log('Running CORS Relay on ' + host + ':' + port);
+  console.log('Running CORS Forward on ' + host + ':' + port);
 });

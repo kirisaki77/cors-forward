@@ -1,7 +1,7 @@
 {
-  "name": "cors-relay",
+  "name": "cors-forward",
   "version": "0.4.4",
-  "description": "CORS Relay is a reverse proxy which adds CORS headers to the proxied request. Request URL is taken from the path",
+  "description": "CORS Forward is a reverse proxy which adds CORS headers to the proxied request. Request URL is taken from the path",
   "license": "MIT",
   "author": "kirisaki77",
   "contributors": [
@@ -9,10 +9,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kirisaki77/cors-relay.git"
+    "url": "https://github.com/kirisaki77/cors-forward.git"
   },
   "bugs": {
-    "url": "https://github.com/kirisaki77/cors-relay/issues/"
+    "url": "https://github.com/kirisaki77/cors-forward/issues/"
   },
   "keywords": [
     "cors",

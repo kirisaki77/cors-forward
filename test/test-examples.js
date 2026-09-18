@@ -1,8 +1,8 @@
 /**
- * CORS Relay is designed for use as a standalone server. Sometimes you want
+ * CORS Forward is designed for use as a standalone server. Sometimes you want
  * to have extra functionality on top of the default CORS server. If it may be
  * useful to others, please open a feature request on the issue tracker at
- * https://github.com/kirisaki77/cors-relay/issues.
+ * https://github.com/kirisaki77/cors-forward/issues.
  *
  * If it is only useful to your application, look below for some examples.
  * These examples are provided as-is without guarantees. Use at your own risk.
@@ -17,7 +17,7 @@ var http = require('http');
 describe('Examples', function() {
   // Note: In the examples below we don't listen on any port after calling
   // createServer() because it is not needed to start listening on a port if the
-  // CORS Relay is only used internally.
+  // CORS Forward is only used internally.
 
   // And normally you have to listen on some port, like this:
   //

@@ -1,6 +1,6 @@
-// When this module is loaded, CORS Relay is started.
+// When this module is loaded, CORS Forward is started.
 // Then, a request is generated to warm up the server (just in case).
-// Then the base URL of CORS Relay is sent to the parent process.
+// Then the base URL of CORS Forward is sent to the parent process.
 // ...
 // When the parent process is done, it sends an empty message to this child
 // process, which in turn records the change in used heap space.

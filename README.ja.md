@@ -54,6 +54,16 @@ Cookie の転送を許可する際に、その指定も外してください。
 オプションの詳細は後述の `allowSensitiveHeaders`、アクセス・転送先の制限は
 「公開運用時の設定」を参照してください。
 
+## インストール
+
+```sh
+npm install cors-forward
+```
+
+`require('cors-forward').createServer(options)` でプロキシサーバーを作成できます。
+npmの `cors-anywhere` は元プロジェクトのパッケージ名です。その名前でインストールしても、
+このforkにはなりません。
+
 ## 開発環境と依存関係
 
 Node.js 22.13以上の22系、または24以上が必要です。サポート中のLTS版を使用してください。
@@ -67,10 +77,7 @@ node server.js
 ```
 
 本番用の依存だけを取得する場合は `npm ci --omit=dev` を使います。
-npmの `cors-anywhere` は元プロジェクトのパッケージ名です。レジストリからその名前で
-インストールしても、このforkにはなりません。本リポジトリのパッケージ名は `cors-forward` です。
-改名によってnpmへの公開や同名パッケージの所有権取得が行われるわけではありません。
-公開するまでは上記のソースから起動してください。以下の使用例は、本パッケージを
+以下の使用例は、本パッケージを
 `cors-forward` としてインストールした環境を想定しています。
 
 ```sh
@@ -165,7 +172,7 @@ cors_proxy.createServer({
 ### クライアント
 
 API を使用するには、アクセス先 URL の先頭に API の URL を付けます。
-使用例は [demo.html](demo.html) を参照してください。
+使用例は [demo.html](https://github.com/kirisaki77/cors-forward/blob/master/demo.html) を参照してください。
 簡単な使い方は [lib/help.txt](lib/help.txt) にも記載されています。
 
 **注意: 2021 年 2 月以降、デモサーバーへのアクセスにはオプトインが必要です。**
@@ -262,7 +269,7 @@ jQuery.ajaxPrefilter(function(options) {
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) に渡されます。
 
 CORS Forward を拡張する、さらに高度な使用例については、
-[test/test-examples.js](test/test-examples.js) を参照してください。
+[test/test-examples.js](https://github.com/kirisaki77/cors-forward/blob/master/test/test-examples.js) を参照してください。
 
 ### デモサーバー
 

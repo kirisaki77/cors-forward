@@ -57,6 +57,16 @@ Other custom credential headers must be listed in `removeHeaders` as needed.
 See [Documentation](#documentation) for option details and
 [Deployment security](#deployment-security) for access and destination restrictions.
 
+## Installation
+
+```sh
+npm install cors-forward
+```
+
+Use `require('cors-forward').createServer(options)` to create a proxy server.
+The npm name `cors-anywhere` identifies the upstream package; installing it does
+not select this fork.
+
 ## Development and dependency security
 
 This fork requires Node.js 22.13+ (22.x) or 24+. Use a supported Node.js LTS
@@ -126,10 +136,6 @@ npm ci
 node server.js
 ```
 
-The npm name `cors-anywhere` identifies the upstream package; installing it from
-the registry does not select this fork. This repository's package name is
-`cors-forward`. Renaming it does not publish it to npm or establish ownership of
-that registry name. Use the source checkout above until a release is published.
 The examples below assume this package is installed as `cors-forward`.
 
 ## Deployment security
@@ -183,7 +189,7 @@ Upstream demos (not operated by this fork):
 
 ### Client
 
-To use the API, just prefix the URL with the API URL. Take a look at [demo.html](demo.html) for an example.
+To use the API, just prefix the URL with the API URL. Take a look at [demo.html](https://github.com/kirisaki77/cors-forward/blob/master/demo.html) for an example.
 A concise summary of the documentation is provided at [lib/help.txt](lib/help.txt).
 
 **Note: as of February 2021, access to the demo server requires an opt-in**,
@@ -282,7 +288,7 @@ For advanced users, the following options are also provided.
   [`https.createServer`](https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener) method.
 
 For even more advanced usage (building upon CORS Forward),
-see the sample code in [test/test-examples.js](test/test-examples.js).
+see the sample code in [test/test-examples.js](https://github.com/kirisaki77/cors-forward/blob/master/test/test-examples.js).
 
 ### Demo server
 

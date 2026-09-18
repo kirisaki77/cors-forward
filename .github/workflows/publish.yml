@@ -61,14 +61,16 @@ jobs:
           install_dir=$(mktemp -d)
           npm install --prefix "$install_dir" --ignore-scripts --omit=dev --no-audit --no-fund "$RUNNER_TEMP/cors-forward-$RELEASE_VERSION.tgz"
           node scripts/smoke-package.js "$install_dir" "$RELEASE_VERSION"
+          cp scripts/check-publish-version.js "$RUNNER_TEMP/check-publish-version.js"
           cd "$RUNNER_TEMP"
-          sha256sum "cors-forward-$RELEASE_VERSION.tgz" > "cors-forward-$RELEASE_VERSION.tgz.sha256"
+          sha256sum "cors-forward-$RELEASE_VERSION.tgz" check-publish-version.js > "cors-forward-$RELEASE_VERSION.tgz.sha256"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: npm-package
           path: |
             ${{ runner.temp }}/cors-forward-${{ env.RELEASE_VERSION }}.tgz
             ${{ runner.temp }}/cors-forward-${{ env.RELEASE_VERSION }}.tgz.sha256
+            ${{ runner.temp }}/check-publish-version.js
           if-no-files-found: error
           retention-days: 7
 
@@ -78,6 +80,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
+    # All versions share this lock; testing and packaging remain parallel.
+    concurrency:
+      group: npm-publish-cors-forward
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: read
       id-token: write
@@ -99,4 +106,5 @@ jobs:
         working-directory: package
         run: |
           sha256sum --check "cors-forward-$RELEASE_VERSION.tgz.sha256"
+          node check-publish-version.js "$RELEASE_VERSION" "$RELEASE_DIST_TAG"
           npm publish "./cors-forward-$RELEASE_VERSION.tgz" --ignore-scripts --access public --tag "$RELEASE_DIST_TAG"

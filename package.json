@@ -1,6 +1,6 @@
 {
   "name": "cors-forward",
-  "version": "0.4.4",
+  "version": "0.1.0",
   "description": "CORS Forward is a reverse proxy which adds CORS headers to the proxied request. Request URL is taken from the path",
   "license": "MIT",
   "author": "kirisaki77",
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kirisaki77/cors-forward.git"
+    "url": "git+https://github.com/kirisaki77/cors-forward.git"
   },
   "bugs": {
     "url": "https://github.com/kirisaki77/cors-forward/issues/"
@@ -24,9 +24,7 @@
   "main": "./lib/cors-anywhere.js",
   "files": [
     "lib/",
-    "test/",
-    "Procfile",
-    "demo.html",
+    "README.ja.md",
     "server.js"
   ],
   "dependencies": {

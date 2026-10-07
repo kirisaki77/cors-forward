@@ -49,3 +49,4 @@ jobs:
           name: coverage-${{ matrix.os }}-${{ matrix.node }}
           path: coverage/lcov.info
           if-no-files-found: error
+          retention-days: 3

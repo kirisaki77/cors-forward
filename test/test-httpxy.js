@@ -140,3 +140,108 @@ describe('httpxy integration', function() {
       }).end(done);
   });
 });
+
+describe('redirect lifecycle', function() {
+  function listen(server) {
+    return new Promise(function(resolve) { server.listen(0, '127.0.0.1', resolve); });
+  }
+
+  function close(server) {
+    return new Promise(function(resolve) { server.close(resolve); server.closeAllConnections(); });
+  }
+
+  ['prependListener', 'on'].forEach(function(register) {
+    it('releases completed hop listeners and preserves caller listeners registered with ' + register, async function() {
+      var incoming;
+      var downstream;
+      var counts = [];
+      var callerError = function() {};
+      var closeCount = 0;
+      var onceCloseCount = 0;
+      var pipeCloseCount = 0;
+      var callerClose = function() { closeCount++; };
+      var callerResponseError = function() {};
+      var pipeError = function() {};
+      var upstream = http.createServer(function(req, res) {
+        counts.push([incoming.listenerCount('error'), downstream.listenerCount('close'), downstream.listenerCount('error')]);
+        var hop = Number(req.url.slice(1));
+        if (hop < 20) {
+          res.writeHead(302, {Location: '/' + (hop + 1)});
+          res.end('discard this hop');
+        } else {
+          res.end('finished');
+        }
+      });
+      var proxy = createServer({maxRedirects: 20, getProxyForUrl: function() { return ''; }});
+      proxy[register]('request', function(req, res) {
+        incoming = req;
+        downstream = res;
+        req.on('error', callerError);
+        res.on('close', callerClose);
+        res.once('close', function() { onceCloseCount++; });
+        res.on('error', callerResponseError);
+        res.on('pipe', function() {
+          res.on('error', pipeError);
+          res.once('close', function() { pipeCloseCount++; });
+        });
+      });
+      try {
+        await listen(upstream);
+        await request(proxy).get('/http://127.0.0.1:' + upstream.address().port + '/0')
+          .redirects(0).expect(200, 'finished');
+        await new Promise(setImmediate);
+        assert.strictEqual(counts.length, 21);
+        counts.forEach(function(count) {
+          assert.ok(count[0] <= 2 && count[1] <= 5 && count[2] <= 2, 'listeners grew: ' + count);
+        });
+        assert.deepStrictEqual(incoming.listeners('error'), [callerError]);
+        assert.deepStrictEqual(downstream.listeners('error'), [callerResponseError, pipeError]);
+        assert.ok(downstream.listeners('close').includes(callerClose));
+        assert.strictEqual(closeCount, 1);
+        assert.strictEqual(onceCloseCount, 1);
+        assert.strictEqual(pipeCloseCount, 1);
+      } finally {
+        await close(proxy);
+        await close(upstream);
+      }
+    });
+  });
+
+  it('closes an unfinished redirect when the client disconnects without following it', async function() {
+    this.timeout(4000);
+    var hits = [];
+    var client;
+    var sawRedirect;
+    var redirectStarted = new Promise(function(resolve) { sawRedirect = resolve; });
+    var sawClose;
+    var redirectClosed = new Promise(function(resolve) { sawClose = resolve; });
+    var upstream = http.createServer(function(req, res) {
+      hits.push(req.url);
+      if (req.url === '/slow') {
+        res.writeHead(302, {Location: '/unexpected'});
+        res.write('unfinished redirect body');
+        res.once('close', sawClose);
+        sawRedirect();
+      } else {
+        res.end('healthy');
+      }
+    });
+    var proxy = createServer({getProxyForUrl: function() { return ''; }});
+    try {
+      await listen(upstream);
+      await listen(proxy);
+      var target = '/http://127.0.0.1:' + upstream.address().port;
+      client = http.get({hostname: '127.0.0.1', port: proxy.address().port, path: target + '/slow'});
+      client.on('error', function() {});
+      await redirectStarted;
+      client.destroy();
+      await redirectClosed;
+      await request(proxy).get(target + '/healthy').expect(200, 'healthy');
+      assert.deepStrictEqual(hits, ['/slow', '/healthy']);
+    } finally {
+      if (client) { client.destroy(); }
+      await close(proxy);
+      await close(upstream);
+    }
+  });
+});
